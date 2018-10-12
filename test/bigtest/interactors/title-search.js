@@ -30,6 +30,7 @@ import { hasClassBeginningWith } from './helpers';
   providerPreviewPaneIsPresent = isPresent('[data-test-preview-pane="providers"]');
   hasBackButton = isPresent('[data-test-eholdings-details-view-back-button]');
   clickSearchVignette = clickable('[data-test-search-vignette]');
+  sortBy = value('[data-test-eholdings-search-filters="titles"] input[name="sort"]:checked');
   hasErrors = isPresent('[data-test-query-list-error="titles"]');
   errorMessage = text('[data-test-query-list-error="titles"]');
   noResultsMessage = text('[data-test-query-list-not-found="titles"]');

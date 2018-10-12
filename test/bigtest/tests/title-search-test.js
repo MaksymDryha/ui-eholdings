@@ -519,6 +519,128 @@ describe('TitleSearch', () => {
     });
   });
 
+  describe('sorting titles', () => {
+    beforeEach(function () {
+      this.server.create('title', {
+        name: 'Health Associations'
+      });
+      this.server.create('title', {
+        name: 'Analytics for everyone'
+      });
+      this.server.create('title', {
+        name: 'Non Matching'
+      });
+      this.server.create('title', {
+        name: 'My Health Analytics 2'
+      });
+      this.server.create('title', {
+        name: 'My Health Analytics 10'
+      });
+    });
+
+    describe('searching for providers', () => {
+      beforeEach(() => {
+        return TitleSearchPage.search('health analytics');
+      });
+
+      it('has search filters', () => {
+        expect(TitleSearchPage.hasSearchFilters).to.be.true;
+      });
+
+      it('shows the default sort filter of relevance in the search form', () => {
+        expect(TitleSearchPage.sortBy).to.equal('relevance');
+      });
+
+      it("displays title entries related to 'health analytics'", () => {
+        expect(TitleSearchPage.titleList()).to.have.lengthOf(4);
+      });
+
+      it('displays the titles sorted by relevance', () => {
+        expect(TitleSearchPage.titleList(0).name).to.equal('My Health Analytics 2');
+        expect(TitleSearchPage.titleList(1).name).to.equal('My Health Analytics 10');
+        expect(TitleSearchPage.titleList(2).name).to.equal('Analytics for everyone');
+        expect(TitleSearchPage.titleList(3).name).to.equal('Health Associations');
+      });
+
+      it.always('does not reflect the default sort=relevance in url', function () {
+        expect(this.location.search).to.not.include('sort=relevance');
+      });
+
+      describe('then filtering by sort options', () => {
+        beforeEach(() => {
+          return TitleSearchPage.clickFilter('sort', 'name');
+        });
+
+        it('displays the titles sorted by title name', () => {
+          expect(TitleSearchPage.titleList(0).name).to.equal('Analytics for everyone');
+          expect(TitleSearchPage.titleList(1).name).to.equal('Health Associations');
+          expect(TitleSearchPage.titleList(2).name).to.equal('My Health Analytics 2');
+          expect(TitleSearchPage.titleList(3).name).to.equal('My Health Analytics 10');
+        });
+
+        it('shows the sort filter of name in the search form', () => {
+          expect(TitleSearchPage.sortBy).to.equal('name');
+        });
+
+        it('reflects the sort in the URL query params', function () {
+          expect(this.location.search).to.include('sort=name');
+        });
+
+        it('shows search filters on smaller screen sizes (due to filter change only)', () => {
+          expect(TitleSearchPage.isSearchVignetteHidden).to.equal(false);
+        });
+
+        describe('then searching for other titles', () => {
+          beforeEach(() => {
+            return TitleSearchPage.search('analytics');
+          });
+
+          it('keeps the sort filter of name in the search form', () => {
+            expect(TitleSearchPage.sortBy).to.equal('name');
+          });
+
+          it('displays the titles sorted by title name', () => {
+            expect(TitleSearchPage.titleList(0).name).to.equal('Analytics for everyone');
+            expect(TitleSearchPage.titleList(1).name).to.equal('My Health Analytics 2');
+            expect(TitleSearchPage.titleList(2).name).to.equal('My Health Analytics 10');
+          });
+
+          it('shows the sort filter of name in the search form', () => {
+            expect(TitleSearchPage.sortBy).to.equal('name');
+          });
+
+          describe('then clicking another search type', () => {
+            beforeEach(() => {
+              return TitleSearchPage.changeSearchType('packages');
+            });
+
+            it('does not display any results', () => {
+              expect(TitleSearchPage.titleList()).to.have.lengthOf(0);
+            });
+
+            describe('navigating back to title search', () => {
+              beforeEach(() => {
+                return TitleSearchPage.changeSearchType('titles');
+              });
+
+              it('keeps the sort filter of name in the search form', () => {
+                expect(TitleSearchPage.sortBy).to.equal('name');
+              });
+
+              it('displays the last results', () => {
+                expect(TitleSearchPage.titleList()).to.have.lengthOf(3);
+              });
+
+              it('reflects the sort=name in the URL query params', function () {
+                expect(this.location.search).to.include('sort=name');
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
   describe('with multiple pages of titles', () => {
     beforeEach(function () {
       this.server.createList('title', 75, {
